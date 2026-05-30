@@ -1,0 +1,37 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: money-keeper-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: money_keeper
+      POSTGRES_USER: money_keeper
+      POSTGRES_PASSWORD: money_keeper_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - money_keeper_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U money_keeper -d money_keeper"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./backend
+    container_name: money-keeper-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DATABASE_URL: postgresql://money_keeper:money_keeper_password@postgres:5432/money_keeper?schema=public
+      CORS_ORIGIN: "*"
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  money_keeper_pgdata:
