@@ -9,7 +9,7 @@ COPY prisma ./prisma
 RUN npx prisma generate
 
 COPY . .
-RUN npm run build
+RUN sed -i 's/\r$//' docker-entrypoint.sh && npm run build
 
 EXPOSE 3001
 
